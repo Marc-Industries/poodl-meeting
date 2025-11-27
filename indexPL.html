@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poodl | Spotkanie Polska</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght(400;600;700)&display=swap" rel="stylesheet">
+    <style>
+        /* Base Styles - Adattato dalla struttura IT */
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f4f8;
+            transition: background-color 0.3s ease;
+        }
+        .container {
+            max-width: 400px;
+            padding: 30px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        /* Colore per lo stato ATTIVO (verde) */
+        .active-status { color: #10b981; } 
+        
+        /* Nuovo colore per lo stato UPCOMING (Viola/Magenta) */
+        .upcoming-status { color: #5A3FA3; } 
+        
+        /* Gradiente personalizzato per il bottone in stato UPCOMING */
+        .poodl-gradient {
+            background: linear-gradient(90deg, #1f4287 0%, #a33f52 100%); /* Blu-Viola a Rosso-Magenta */
+            transition: opacity 0.3s ease, transform 0.1s ease;
+        }
+        .poodl-gradient:hover {
+            opacity: 0.9;
+        }
+
+        /* Stile per l'icona della lingua (ora icona fissa della Polonia) */
+        .lang-icon-pl {
+            position: fixed; /* Fissa la posizione */
+            top: 20px;
+            left: 20px;
+            width: 32px;
+            height: 20px;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            z-index: 10; /* Assicura che sia sopra tutto */
+        }
+        .lang-icon-pl > div {
+            height: 50%;
+        }
+
+        .loading-icon, .status-icon { margin: 0 auto 15px; }
+        
+    </style>
+</head>
+<body>
+
+<!-- Icona Fissa Bandiera Polacca -->
+<div class="lang-icon-pl" title="Poodl Polska">
+    <div style="background-color: white;"></div>
+    <div style="background-color: #dc143c;"></div>
+</div>
+
+<div class="container">
+    
+    <!-- Icona di caricamento iniziale/status -->
+    <div id="status-icon" class="loading-icon">
+        <svg class="animate-spin h-8 w-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+    </div>
+
+    <!-- Messaggio di stato principale -->
+    <h3 id="status-title" class="text-xl font-bold text-gray-800">Sprawdzanie statusu rozmowy...</h3>
+    
+    <!-- Dettagli (Orario, Link di fallback) -->
+    <p id="status-details" class="text-md text-gray-600 mt-2">Proszę czekać.</p>
+    
+    <!-- Bottone dinamico: mostra il link attivo O il link di info -->
+    <a id="dynamic-button" class="mt-6 inline-block text-white font-bold py-3 px-6 rounded-xl transition duration-150 ease-in-out shadow-lg opacity-0 pointer-events-none" href="#"></a>
+</div>
+
+<script>
+    // --------------------------------------------------------
+    // KONFIGURACJA: HARMONOGRAM I LINKI (POLAND)
+    // --------------------------------------------------------
+    // Orario: Venerdì (5), 20:30 (20:30 - 21:30)
+    
+    // URL per lo schedule completo quando la call non è attiva
+    const FULL_SCHEDULE_URL = "https://marc-industries.github.io/poodl-meeting/schedule_pl.html"; 
+    
+    const SCHEDULE = [
+        { 
+            day: 5, 
+            startHour: 20, 
+            startMinute: 30, 
+            endHour: 21, 
+            endMinute: 30, 
+            link: "https://us06web.zoom.us/j/82391146647?pwd=sTl38aSksxxdUbLAn0BX7Sw1fVWax9.1", 
+            description: "Piątkowe Spotkanie Społeczności (20:30 - 21:30 CET/CEST)" 
+        },
+    ].sort((a, b) => a.day - b.day || a.startHour - b.startHour || a.startMinute - b.startMinute); 
+    
+    // Link di default quando non ci sono call attive o in programma (in questo caso, è la call di Venerdì).
+    const FALLBACK_URL = SCHEDULE[0].link; 
+
+    // --------------------------------------------------------
+    // FUNKCJE LOGICZNE
+    // --------------------------------------------------------
+
+    /**
+     * Oblicza aktualny status rozmowy (Aktywna, Nadchodząca lub Brak).
+     */
+    function getCallStatus() {
+        const now = new Date();
+        const currentDay = now.getDay(); 
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        const nowMinutesTotal = currentHour * 60 + currentMinute;
+        
+        // 1. Wyszukaj AKTYWNĄ ROZMOWĘ DZISIAJ (Natychmiastowe przekierowanie)
+        for (const call of SCHEDULE) {
+            if (call.day === currentDay) {
+                const startMinutesTotal = call.startHour * 60 + (call.startMinute || 0);
+                const endMinutesTotal = call.endHour * 60 + (call.endMinute || 0);
+
+                if (nowMinutesTotal >= startMinutesTotal && nowMinutesTotal < endMinutesTotal) {
+                    return { status: 'ACTIVE', call: call }; 
+                }
+            }
+        }
+
+        // 2. Wyszukaj NAJBLIŻSZĄ ROZMOWĘ (Dziś lub w następne dni)
+        for (let i = 0; i < 7; i++) {
+            const checkDay = (currentDay + i) % 7; 
+            
+            const callsForDay = SCHEDULE.filter(call => call.day === checkDay);
+
+            for (const call of callsForDay) {
+                const nextCallTime = new Date(now);
+                
+                if (i > 0) {
+                     nextCallTime.setDate(now.getDate() + i);
+                }
+                
+                nextCallTime.setHours(call.startHour, call.startMinute || 0, 0, 0); 
+                
+                if (i === 0 && now.getTime() < nextCallTime.getTime()) {
+                    return { status: 'UPCOMING', call: call, nextCallTime: nextCallTime };
+                } 
+                else if (i > 0) {
+                    return { status: 'UPCOMING', call: call, nextCallTime: nextCallTime };
+                }
+            }
+        }
+
+        // 3. Nie znaleziono rozmów
+        return { status: 'NONE' };
+    }
+
+    /**
+     * Aktualizuje interfejs użytkownika na podstawie statusu.
+     */
+    function updateUI(statusResult) {
+        const titleElement = document.getElementById('status-title');
+        const detailsElement = document.getElementById('status-details');
+        const buttonElement = document.getElementById('dynamic-button');
+        const iconElement = document.getElementById('status-icon');
+
+        // Reset
+        iconElement.innerHTML = ''; 
+        titleElement.classList.remove('active-status', 'upcoming-status', 'text-gray-800');
+        buttonElement.classList.remove('poodl-gradient');
+
+        buttonElement.classList.add('opacity-100', 'pointer-events-auto');
+        titleElement.classList.add('text-gray-800');
+
+        switch (statusResult.status) {
+            case 'ACTIVE':
+                // PRZYPADEK 1: AKTYWNA ROZMOWA
+                titleElement.textContent = "Rozmowa Trwa Teraz!";
+                titleElement.classList.add('active-status');
+                detailsElement.textContent = `Rozmowa jest aktywna: ${statusResult.call.description}. Zostaniesz przekierowany.`;
+                
+                // Ikona Check Zielona
+                iconElement.innerHTML = '<svg class="w-8 h-8 active-status" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>';
+                
+                // Przycisk
+                buttonElement.textContent = "KLIKNIJ, ABY DOŁĄCZYĆ";
+                buttonElement.href = statusResult.call.link;
+                buttonElement.classList.add('poodl-gradient');
+
+                // Przekierowanie
+                setTimeout(() => {
+                    window.location.replace(statusResult.call.link);
+                }, 1500);
+                break;
+
+            case 'UPCOMING':
+                // PRZYPADEK 2: NADCHODZĄCA ROZMOWA
+                const nextTime = statusResult.nextCallTime;
+                
+                // Formatta l'orario e il giorno in polacco
+                const dateOptions = { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' };
+                const formattedTime = nextTime.toLocaleTimeString('pl-PL', dateOptions);
+
+                titleElement.textContent = "Nie jesteśmy teraz na żywo.";
+                titleElement.classList.add('upcoming-status'); 
+
+                detailsElement.innerHTML = `Następna rozmowa jest zaplanowana na:<br><strong class="font-bold">${formattedTime}</strong><br>(${statusResult.call.description})`;
+                detailsElement.classList.remove('text-gray-600');
+                detailsElement.classList.add('text-gray-700', 'font-medium');
+
+                // Ikona Zegara w kolorze UPCOMING
+                iconElement.innerHTML = '<svg class="w-8 h-8 upcoming-status" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+
+                // Przycino rimanda alla schedule completa
+                buttonElement.textContent = "ZOBACZ HARMONOGRAM";
+                buttonElement.href = FULL_SCHEDULE_URL; 
+                buttonElement.classList.add('poodl-gradient');
+
+                break;
+            
+            case 'NONE':
+            default:
+                // PRZYPADEK 3: BRAK ROZMÓW W HARMONOGRAMIE
+                titleElement.textContent = "Brak Zaplanowanych Rozmów";
+                detailsElement.textContent = "Nie ma aktywnych ani zaplanowanych rozmów Zoom. Sprawdź pełny harmonogram.";
+                
+                // Ikona Informacji in colore UPCOMING
+                iconElement.innerHTML = '<svg class="w-8 h-8 upcoming-status" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>';
+                
+                // Przycino rimanda alla schedule completa
+                buttonElement.textContent = "ZOBACZ PEŁNY HARMONOGRAM";
+                buttonElement.href = FULL_SCHEDULE_URL;
+                buttonElement.classList.add('poodl-gradient');
+                break;
+        }
+    }
+
+    // --------------------------------------------------------
+    // URUCHOMIENIE
+    // --------------------------------------------------------
+
+    function init() {
+        const status = getCallStatus();
+        updateUI(status);
+        
+        // Mantieni l'aggiornamento per controllare lo stato ogni minuto
+        setInterval(() => {
+            const newStatus = getCallStatus();
+            // Aggiorna solo se lo stato è cambiato
+            if (newStatus.status !== status.status) {
+                 updateUI(newStatus);
+            }
+        }, 60000); 
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>
