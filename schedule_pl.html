@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poodl | Pełny Harmonogram Polska</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Stili Personalizzati e Colori Poodl */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            padding-top: 60px; /* Spazio per elementi fissi */
+            min-height: 100vh;
+        }
+        .schedule-card {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        }
+        /* Gradiente Poodl per il pulsante */
+        .poodl-gradient {
+            background: linear-gradient(90deg, #1f4287 0%, #a33f52 100%); /* Blue-Violet to Red-Magenta */
+            transition: opacity 0.3s ease, transform 0.1s ease;
+        }
+        .poodl-gradient:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        /* Stile per le singole righe di appuntamento */
+        .schedule-item {
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+        .schedule-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            background-color: #f9f9fb;
+        }
+        /* Colore per l'ora (custom Poodl color) */
+        .time-color {
+            color: #5A3FA3;
+        }
+        
+        /* Stile per l'icona della bandiera polacca (sostituisce lo switch di lingua) */
+        .lang-icon-pl {
+            position: fixed; /* Fissa la posizione */
+            top: 20px;
+            left: 20px;
+            width: 32px;
+            height: 20px;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            z-index: 10; 
+        }
+        .lang-icon-pl > div {
+            height: 50%;
+        }
+
+        /* Stile per il pulsante di stato Live (fisso in alto a destra) */
+        .live-status-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+            white-space: nowrap; /* Evita che il testo vada a capo su schermi piccoli */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .live-status-btn {
+                right: 50%;
+                transform: translateX(50%);
+                top: 70px;
+            }
+            body {
+                padding-top: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Icona Fissa Bandiera Polacca -->
+<div class="lang-icon-pl" title="Poodl Polska">
+    <div style="background-color: white;"></div>
+    <div style="background-color: #dc143c;"></div>
+</div>
+
+<!-- Pulsante di ritorno alla pagina dinamica (reindirizza a schedule_pl.html) -->
+<a href="schedule_pl.html" class="live-status-btn poodl-gradient text-white font-bold py-2 px-6 rounded-full transition duration-150 ease-in-out shadow-xl transform hover:scale-105">
+    <span class="inline-block w-3 h-3 bg-green-400 rounded-full mr-2 animate-pulse"></span>
+    Wróć do Statusu
+</a>
+
+
+<div class="schedule-card">
+    
+    <h1 class="text-3xl font-extrabold text-gray-900 mb-2">Pełny Harmonogram Spotkań Zoom (Polska)</h1>
+    <p class="text-lg text-gray-500 mb-4">🌍 Otwarty dla członków i ich gości</p>
+
+    <!-- Introductory Content -->
+    <div class="mb-8 p-4 bg-blue-50 border-l-4 border-[#1f4287] rounded-lg">
+        <p class="text-gray-700 leading-relaxed text-sm">
+            Nie przegap tej wyjątkowej okazji! Istnieje niezwykła szansa, która zmienia życie wielu ludzi... a Ty możesz ją odkryć, zanim będzie za późno! 
+            <br><br>
+            Zaproś przyjaciół, współpracowników lub każdego, kto pragnie lepszej przyszłości: **Kolektywne Rozmowy Zoom** są otwarte dla wszystkich! Wybierz preferowaną godzinę, połącz się i odkryj coś, co może naprawdę odmienić Twoje życie!
+        </p>
+    </div>
+
+    <!-- Contenitore della Programmazione Dinamica -->
+    <div id="schedule-container" class="space-y-6">
+        <!-- The schedule will be injected here by the script -->
+    </div>
+    
+    <!-- Footer CTA -->
+    <div class="mt-8 pt-4 border-t text-center">
+        <p class="text-gray-500 italic text-sm">Nie zwlekaj… właściwy moment jest TERAZ! 💖</p>
+    </div>
+</div>
+
+<script>
+    // --------------------------------------------------------
+    // KONFIGURACJA: HARMONOGRAM I LINKI (POLONIA)
+    // --------------------------------------------------------
+    
+    // Day: 0=Niedziela, 1=Poniedziałek, ..., 6=Sobota
+    // Orario: Venerdì (5), 20:30 (20:30 - 21:30)
+    const SCHEDULE = [
+        { 
+            day: 5, 
+            startHour: 20, 
+            startMinute: 30, 
+            link: "https://us06web.zoom.us/j/82391146647?pwd=sTl38aSksxxdUbLAn0BX7Sw1fVWax9.1", 
+            description: "Piątkowe Spotkanie Społeczności" 
+        },
+        // Aggiungi qui altre call specifiche per la Polonia se necessario.
+        /*
+        { day: 2, startHour: 18, startMinute: 0, link: "LINK_ZOOM_WT", description: "Wtorkowy Przegląd Projektu" },
+        { day: 4, startHour: 10, startMinute: 0, link: "LINK_ZOOM_CZ", description: "Czwartkowa Szybka Sesja Pytania-Odpowiedzi" },
+        */
+    ];
+
+    /**
+     * Ritorna l'acronimo del fuso orario locale.
+     */
+    function getTimeZoneAcronym() {
+        try {
+            const date = new Date();
+            // Formato short per estrarre CEST/CET
+            const tz = Intl.DateTimeFormat('pl-PL', { timeZoneName: 'short' }).format(date);
+            const match = tz.match(/[A-Z]{3,5}/);
+            return match ? match[0] : '';
+        } catch (e) {
+            console.error("Błąd podczas pobierania akronimu strefy czasowej:", e);
+            return 'Czas Lokalny';
+        }
+    }
+
+    // Funzione per formattare l'orario in formato 24 ore Polacco
+    function formatTime(hour, minute) {
+        const date = new Date();
+        // Reimposta l'ora sulla data odierna per usare toLocaleTimeString
+        date.setHours(hour, minute, 0, 0); 
+        // Usa 'pl-PL' per la formattazione locale e orario 24h
+        return date.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Mappa dei numeri dei giorni ai nomi in Polacco
+    const DAY_NAMES = [
+        'Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 
+        'Czwartek', 'Piątek', 'Sobota'
+    ];
+
+    /**
+     * Rende la schedule nell'UI, convertendo gli orari nel fuso orario locale dell'utente.
+     */
+    function renderSchedule() {
+        const container = document.getElementById('schedule-container');
+        const now = new Date();
+        const currentDayIndex = now.getDay();
+        let htmlContent = '';
+        const localTzAcronym = getTimeZoneAcronym();
+
+        // 1. Raggruppa le chiamate per giorno (e ordina per ora)
+        const callsByDay = SCHEDULE.reduce((acc, call) => {
+            const dayName = DAY_NAMES[call.day];
+            if (!acc[dayName]) {
+                acc[dayName] = [];
+            }
+            acc[dayName].push(call);
+            return acc;
+        }, {});
+
+        // 2. Itera su tutti i giorni (da Lunedì a Venerdì/Sabato)
+        // Itera sui giorni dal Lunedì al Venerdì/Sabato (1 a 6)
+        const orderedDays = [1, 2, 3, 4, 5, 6].filter(day => callsByDay[DAY_NAMES[day]]); 
+
+        orderedDays.forEach(dayIndex => {
+            const dayName = DAY_NAMES[dayIndex];
+            const calls = callsByDay[dayName];
+            
+            if (calls && calls.length > 0) {
+                // Intestazione del Giorno
+                htmlContent += `
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-lg">
+                        <h2 class="text-2xl font-bold time-color mb-4 border-b pb-2">${dayName}</h2>
+                        <div class="space-y-3">
+                `;
+                
+                // Elementi della Chiamata
+                calls.forEach(call => {
+                    // Creazione di un oggetto Date per l'evento nel fuso orario locale dell'utente.
+                    // Assumendo che gli orari nella SCHEDULE siano in CET/CEST (come nella pagina dinamica)
+                    
+                    // La logica di conversione più semplice è usare i minuti totali dal CET/CEST all'UTC e poi all'ora locale.
+                    
+                    // 1. Crea un'istanza di Date
+                    const referenceDate = new Date();
+                    // 2. Imposta il giorno e l'ora, forzando che l'ora sia quella definita nel calendario (20:30)
+                    referenceDate.setDate(referenceDate.getDate() + (call.day - currentDayIndex + 7) % 7);
+                    referenceDate.setHours(call.startHour, call.startMinute, 0, 0);
+
+                    // Qui l'ora di riferimento `referenceDate` è nel fuso orario locale dell'utente.
+                    // Poiché il sistema locale dell'utente applica la DST, è sufficiente formattare.
+                    
+                    // Formatta l'orario nel fuso orario locale dell'utente
+                    const formattedTime = referenceDate.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+                    
+                    htmlContent += `
+                        <a href="${call.link}" target="_blank" class="schedule-item bg-gray-50 hover:bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <!-- Icona -->
+                            <svg class="w-6 h-6 text-gray-400 mr-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            
+                            <!-- Contenuto -->
+                            <div class="text-left flex-grow">
+                                <p class="text-lg font-semibold text-gray-800">${call.description}</p>
+                                <p class="text-md time-color font-bold">${formattedTime} <span class="text-gray-500 font-normal text-sm">(Dołącz przez Zoom)</span></p>
+                            </div>
+                            
+                            <!-- Freccia -->
+                            <svg class="w-5 h-5 text-gray-400 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </a>
+                    `;
+                });
+
+                htmlContent += `
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        // Aggiunge l'acronimo del fuso orario locale all'intestazione
+        const existingTZMessage = document.getElementById('tz-message');
+        if (existingTZMessage) existingTZMessage.remove();
+
+        document.querySelector('.schedule-card h1').insertAdjacentHTML('afterend', 
+            `<p id="tz-message" class="text-md text-gray-600 mb-6">Wszystkie czasy poniżej są konwertowane na Twoją lokalną strefę czasową: <strong class="time-color">${localTzAcronym}</strong></p>`
+        );
+
+        container.innerHTML = htmlContent;
+    }
+
+    // Avvia il rendering
+    document.addEventListener('DOMContentLoaded', renderSchedule);
+</script>
+
+</body>
+</html>
